@@ -14,13 +14,9 @@ pipeline {
             }
         }
         stage('Test') {
-            agent {
-                dockerfile {
-                    filename "Dockerfile.ci"
-                }
-            }
             steps {
-                sh "/bin/bash -c 'go test -coverprofile=coverage.out ./src'"
+                docker-compose -f docker-compose.ci.yaml run api bash -c 'go test -coverprofile=coverage.out ./src'
+                // sh "/bin/bash -c 'go test -coverprofile=coverage.out ./src'"
             }
         }
         stage('build and push image') {
