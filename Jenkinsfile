@@ -15,7 +15,7 @@ pipeline {
         }
         stage('Test') {
             steps {
-                docker-compose -f docker-compose.ci.yaml run api bash -c 'go test -coverprofile=coverage.out ./src'
+                sh "docker-compose -f docker-compose.ci.yaml run api bash -c 'go test -coverprofile=coverage.out ./src'"
                 // sh "/bin/bash -c 'go test -coverprofile=coverage.out ./src'"
             }
         }
