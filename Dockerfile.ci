@@ -1,0 +1,5 @@
+FROM golang:1.16.5-alpine3.14
+
+WORKDIR /usr/src/app
+RUN apk update && apk add bash
+RUN go get ./...
