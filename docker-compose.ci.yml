@@ -1,0 +1,29 @@
+version: "3.9"
+services:
+  api:
+    build:
+        context: .
+        dockerfile: 'Dockerfile.local'
+    tty: true
+    command: "gow run ./src"
+    ports:
+      - 8080:8080
+    volumes: 
+      - './:/usr/src/app'
+    networks:
+      goweather_net:
+
+  redis:
+    image: redis:6.2.4-alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data/redis
+    networks:
+      goweather_net:
+
+volumes:
+  redis-data:
+networks: 
+  goweather_net:
+    name: goweather_net

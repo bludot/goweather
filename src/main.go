@@ -32,7 +32,7 @@ func getEnv(envstring string) string {
 	}
 	res, exist := os.LookupEnv(envstring)
 	if !exist {
-		log.Fatal("no %s specified", envstring)
+		log.Fatal("no " + envstring + " specified")
 	}
 	return res
 }

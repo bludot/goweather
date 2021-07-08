@@ -1,5 +1,5 @@
 FROM golang:1.16.5-alpine3.14
 
-RUN apk update && apk add bash
+RUN apk update && apk add bash build-base gcc wget git
 RUN go install github.com/mitranim/gow@latest
 WORKDIR /usr/src/app
