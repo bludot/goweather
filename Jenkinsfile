@@ -40,9 +40,9 @@ pipeline {
                         sh script: "echo \"major\"; echo \"${MAJOR}\""
                         sh script: "echo \"minor old\"; echo \"${MINOR_OLD}\""
                         sh script: "echo \"minor new\"; echo \"${MINOR_NEW}\""
-                        RC=sh script: "git rev-list --count \$(echo \"v${MAJOR}.${MINOR_OLD}.0..HEAD\" | tr -d '\040\011\012\015')", returnStdout: true
+                        RC=sh script: "git rev-list --count \$(echo \"${MAJOR}.${MINOR_OLD}.0..HEAD\" | tr -d '\040\011\012\015')", returnStdout: true
                         NEXT_VERSION=sh script: "echo \"${MAJOR}.${MINOR_NEW}.0-rc.${RC}\" | tr -d '\040\011\012\015'", returnStdout: true
-                        NEXT_VERSION_TAG="v${NEXT_VERSION}"
+                        NEXT_VERSION_TAG="${NEXT_VERSION}"
 
                         sh """
                             echo "${NEXT_VERSION_TAG}" > VERSION
