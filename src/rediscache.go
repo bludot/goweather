@@ -21,7 +21,7 @@ var ctx = context.Background()
 func getClient() *redis.Client {
 	host := getEnv("REDIS_HOST")
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     host + "6379",
+		Addr:     host + ":6379",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
