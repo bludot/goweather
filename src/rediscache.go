@@ -19,8 +19,9 @@ var ctx = context.Background()
 // format: long,lat,long,lat where first one is lower and second is higher
 
 func getClient() *redis.Client {
+	host := getEnv("REDIS_HOST")
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "redis:6379",
+		Addr:     host + "6379",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
