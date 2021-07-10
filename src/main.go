@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	healthcheck "github.com/heptiolabs/healthcheck"
 	env "github.com/joho/godotenv"
 )
 
@@ -153,6 +154,15 @@ func handleCurrentWeather(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func setupHealthCheck() (healthcheckserver *http.Server) {
+	health := healthcheck.NewHandler()
+	health.AddLivenessCheck("goroutine-threshold", healthcheck.GoroutineCountCheck(100))
+	go http.ListenAndServe("0.0.0.0:8086", health)
+	// Our app is not ready if we can't connect to our database (`var db *sql.DB`) in <1s.
+	// health.AddReadinessCheck("database", healthcheck.DatabasePingCheck(db, 1*time.Second))
+	return
+}
+
 func createServer() (s *http.Server) {
 	port := getEnv("PORT")
 	port = fmt.Sprintf(":%s", port)
@@ -169,6 +179,7 @@ func createServer() (s *http.Server) {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	log.Println("Starting Service")
 	go func() {
 		if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
@@ -180,6 +191,7 @@ func createServer() (s *http.Server) {
 
 func main() {
 	s := createServer()
+	setupHealthCheck()
 
 	quit := make(chan os.Signal)
 	// kill (no param) default send syscall.SIGTERM
