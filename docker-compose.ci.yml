@@ -10,9 +10,17 @@ services:
       - './:/usr/src/app'
     networks:
       goweather_net:
+    depends_on: 
+      redis:
+        condition: service_healthy
 
   redis:
     image: redis:6.2.4-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
     ports:
       - 6379:6379
     volumes:
