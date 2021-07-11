@@ -18,8 +18,8 @@ pipeline {
         }
         stage('Test build') {
             steps {
-                sh "docker build -t $(echo \"$BUILD_TAG\" | tr '[:upper:]' '[:lower:]'):$BUILD_NUMBER ."
-                sh "docker image rm $(echo \"$BUILD_TAG\" | tr '[:upper:]' '[:lower:]'):$BUILD_NUMBER"
+                sh "docker build -t \$(echo \"$BUILD_TAG\" | tr '[:upper:]' '[:lower:]'):$BUILD_NUMBER ."
+                sh "docker image rm \$(echo \"$BUILD_TAG\" | tr '[:upper:]' '[:lower:]'):$BUILD_NUMBER"
                 sh "docker image prune -a -f"
             }
         }
