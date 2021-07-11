@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -20,12 +19,6 @@ const envFile = ".env"
 
 var loadEnv = env.Load
 
-type Location struct {
-	Latitude  float32 `json:"latitude"`
-	Longitude float32 `json:"longitude"`
-	IP        int     `json:"ip"`
-}
-
 func getEnv(envstring string) string {
 	err := loadEnv(envFile)
 	if err != nil {
@@ -36,62 +29,6 @@ func getEnv(envstring string) string {
 		log.Fatal("no " + envstring + " specified")
 	}
 	return res
-}
-
-func getCurrentWeather(location *Location) string {
-	key := fmt.Sprintf("current%f,%f", location.Longitude, location.Latitude)
-	cache, err := getCache(key)
-	if err != nil {
-		log.Println("got here")
-		// return ""
-	}
-	if err == nil {
-		log.Printf(cache)
-		return cache
-	}
-	apikey := getEnv("APIKEY")
-	url := fmt.Sprintf("https://api.weatherapi.com/v1/current.json?key=%s&q=%f,%f", apikey, location.Latitude, location.Longitude)
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	//Convert the body to type string
-	sb := string(body)
-	setCache(key, sb)
-	log.Printf(sb)
-	return sb
-}
-
-func getForecast(location *Location) string {
-	key := fmt.Sprintf("forecast%f,%f", location.Longitude, location.Latitude)
-	cache, err := getCache(key)
-	if err != nil {
-		log.Println("got here")
-		// return ""
-	}
-	if err == nil {
-		log.Printf(cache)
-		return cache
-	}
-	apikey := getEnv("APIKEY")
-	url := fmt.Sprintf("https://api.weatherapi.com/v1/forecast.json?key=%s&q=%f,%f&days=3&aqi=yes&alerts=yes", apikey, location.Latitude, location.Longitude)
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	//Convert the body to type string
-	sb := string(body)
-	setCache(key, sb)
-	log.Printf(sb)
-	return sb
 }
 
 func addCorsHeader(res http.ResponseWriter) {
@@ -118,9 +55,13 @@ func handleForcast(resp http.ResponseWriter, req *http.Request) {
 			http.Error(resp, err.Error(), http.StatusBadRequest)
 			return
 		}
-		forecast := getForecast(&location)
+		forecast, err := getForecast(&location)
+		if err != nil {
+			resp.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		resp.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(resp, "%s", forecast)
+		fmt.Fprintf(resp, "%s", *forecast)
 		return
 	default:
 		log.Println("error no 404")
@@ -143,9 +84,13 @@ func handleCurrentWeather(resp http.ResponseWriter, req *http.Request) {
 			http.Error(resp, err.Error(), http.StatusBadRequest)
 			return
 		}
-		weather := getCurrentWeather(&location)
+		weather, err := getCurrentWeather(&location)
+		if err != nil {
+			resp.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		resp.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(resp, "%s", weather)
+		fmt.Fprintf(resp, "%s", *weather)
 		return
 	default:
 		log.Println("error no 404")
@@ -190,6 +135,7 @@ func createServer() (s *http.Server) {
 }
 
 func main() {
+	restInit()
 	s := createServer()
 	setupHealthCheck()
 	setupMetrics()
