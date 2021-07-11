@@ -2,12 +2,13 @@ package main
 
 import (
 	"bytes"
-	"floretos/weather/src/mocks"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/bludot/goweather/src/github.com/bludot/goweather/mocks"
 )
 
 func TestGetCurrentWeather(t *testing.T) {

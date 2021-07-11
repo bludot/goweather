@@ -5,7 +5,7 @@ services:
         context: .
         dockerfile: 'Dockerfile.local'
     tty: true
-    command: "gow run ./src"
+    command: "gow run ./src/github.com/bludot/goweather"
     ports:
       - 8080:8080
       - 8086:8086
