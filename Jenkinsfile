@@ -24,6 +24,7 @@ pipeline {
         stage('Test build') {
             steps {
                 sh "docker build -t $BUILD_TAG ."
+                sh "docker image rm $BUILD_TAG"
             }
         }
         stage('build and push image') {
