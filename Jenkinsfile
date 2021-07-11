@@ -21,6 +21,11 @@ pipeline {
                 sh "docker-compose -f docker-compose.ci.yml down"
             }
         }
+        stage('Test build') {
+            steps {
+                sh "docker build -t $BUILD_ID ."
+            }
+        }
         stage('build and push image') {
             when {
                 allOf {
