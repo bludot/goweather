@@ -18,8 +18,8 @@ pipeline {
         }
         stage('Test build') {
             steps {
-                sh "docker build -t $BUILD_TAG:$BUILD_NUMBER ."
-                sh "docker image rm $BUILD_TAG:$BUILD_NUMBER"
+                sh "docker build -t $(echo \"$BUILD_TAG\" | sed -e 's/\(.*\)/\L\1/'):$BUILD_NUMBER ."
+                sh "docker image rm $(echo \"$BUILD_TAG\" | sed -e 's/\(.*\)/\L\1/'):$BUILD_NUMBER"
                 sh "docker image prune -a -f"
             }
         }
