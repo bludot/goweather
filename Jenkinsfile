@@ -25,6 +25,7 @@ pipeline {
             steps {
                 sh "docker build -t $BUILD_TAG:$BUILD_NUMBER ."
                 sh "docker image rm $BUILD_TAG:$BUILD_NUMBER"
+                sh "docker image prune -a -f"
             }
         }
         stage('build and push image') {
