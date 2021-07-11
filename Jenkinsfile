@@ -8,11 +8,6 @@ pipeline {
     }
 
     stages {
-        stage('Build') {
-            steps {
-                echo 'Building..'
-            }
-        }
         stage('Test') {
             steps {
                 sh "docker-compose -f docker-compose.ci.yml down"
