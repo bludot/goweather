@@ -48,7 +48,7 @@ pipeline {
                             echo "${NEXT_VERSION_TAG}" > VERSION
                         """
                     } else {
-                        NEXT_VERSION_TAG=$GIT_TAG
+                        NEXT_VERSION_TAG=GIT_TAG
 
                         sh """
                             echo "${NEXT_VERSION_TAG}" > VERSION

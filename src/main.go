@@ -192,6 +192,7 @@ func createServer() (s *http.Server) {
 func main() {
 	s := createServer()
 	setupHealthCheck()
+	setupMetrics()
 
 	quit := make(chan os.Signal)
 	// kill (no param) default send syscall.SIGTERM
