@@ -8,17 +8,19 @@ pipeline {
     }
 
     stages {
-        stage('Build') {
-            steps {
-                echo 'Building..'
-            }
-        }
         stage('Test') {
             steps {
                 sh "docker-compose -f docker-compose.ci.yml down"
                 sh "docker-compose -f docker-compose.ci.yml build"
                 sh "docker-compose -f docker-compose.ci.yml run api bash -c 'go test -coverprofile=coverage.out ./src/github.com/bludot/goweather'"
                 sh "docker-compose -f docker-compose.ci.yml down"
+            }
+        }
+        stage('Test build') {
+            steps {
+                sh "docker build -t \$(echo \"$BUILD_TAG\" | tr '[:upper:]' '[:lower:]'):$BUILD_NUMBER ."
+                sh "docker image rm \$(echo \"$BUILD_TAG\" | tr '[:upper:]' '[:lower:]'):$BUILD_NUMBER"
+                sh "docker image prune -a -f"
             }
         }
         stage('build and push image') {
