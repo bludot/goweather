@@ -17,6 +17,7 @@ pipeline {
             steps {
                 sh "docker-compose -f docker-compose.ci.yml build"
                 sh "docker-compose -f docker-compose.ci.yml run api bash -c 'go test -coverprofile=coverage.out ./src/github.com/bludot/goweather'"
+                sh "docker-compose -f docker-compose.ci.yml down"
                 // sh "/bin/bash -c 'go test -coverprofile=coverage.out ./src'"
             }
         }
