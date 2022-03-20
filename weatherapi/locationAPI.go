@@ -7,7 +7,6 @@ import (
 	"github.com/bludot/goweather/tracing"
 
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -25,19 +24,19 @@ func (w WeatherAPI) GetCity(ctx context.Context, location *Location) *City {
 	url := fmt.Sprintf("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=%flongitude=%f&localityLanguage=en", location.Latitude, location.Longitude)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		tracing.AddSpanError(span, err)
+		span.AddSpanError(err)
 		return nil
 	}
 	resp, err := w.HttpClient.Do(request)
 	if err != nil {
-		tracing.AddSpanError(span, err)
-		log.Fatalln(err)
+		span.AddSpanError(err)
+		span.Log(err.Error())
 		return nil
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		tracing.AddSpanError(span, err)
-		log.Fatalln(err)
+		span.AddSpanError(err)
+		span.Log(err.Error())
 		return nil
 	}
 	var city City
