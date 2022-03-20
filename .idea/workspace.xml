@@ -5,30 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="57c6dcd7-6f8c-457a-99cb-55cd019a3f54" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/config/config.dev.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/config.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/controllers/controller.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/controllers/get_current_weather.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/controllers/get_forecast.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/http_client/httpClient.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile.ci" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile.ci" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile.local" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile.local" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.ci.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.ci.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tracing/span.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tracing/tracing.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/config.dev.json" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.dev.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controllers/get_current_weather.go" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/get_current_weather.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controllers/get_forecast.go" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/get_forecast.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/github.com/bludot/goweather/httpClient.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/github.com/bludot/goweather/locationAPI.go" beforeDir="false" afterPath="$PROJECT_DIR$/weatherapi/locationAPI.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/github.com/bludot/goweather/main.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/github.com/bludot/goweather/main_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/main_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/github.com/bludot/goweather/metrics.go" beforeDir="false" afterPath="$PROJECT_DIR$/metrics/metrics.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/github.com/bludot/goweather/mocks/mocks.go" beforeDir="false" afterPath="$PROJECT_DIR$/mocks/mocks.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/github.com/bludot/goweather/rediscache.go" beforeDir="false" afterPath="$PROJECT_DIR$/rediscache/rediscache.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/github.com/bludot/goweather/weatherAPI.go" beforeDir="false" afterPath="$PROJECT_DIR$/weatherapi/weatherAPI.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/github.com/bludot/goweather/weatherAPI_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/weatherapi/weatherAPI_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

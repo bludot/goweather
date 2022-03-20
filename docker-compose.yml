@@ -9,7 +9,7 @@ services:
     environment:
       CONFIG__REDIS_HOST: "redis"
     ports:
-      - 8080:3000
+      - 3000:3000
     volumes: 
       - './:/usr/src/app'
     networks:
