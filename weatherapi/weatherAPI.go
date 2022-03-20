@@ -1,6 +1,7 @@
 package weatherapi
 
 import (
+	"context"
 	"fmt"
 	"github.com/bludot/goweather/config"
 	"github.com/bludot/goweather/http_client"
@@ -30,8 +31,8 @@ func NewWeatherAPI(config config.WeatherAPIConfig, redisCache *rediscache.RedisC
 	}
 }
 
-func (w WeatherAPI) GetCurrentWeather(location *Location) (res *string, failed error) {
-	key := w.GetCity(location).City + "_current"
+func (w WeatherAPI) GetCurrentWeather(ctx context.Context, location *Location) (res *string, failed error) {
+	key := w.GetCity(ctx, location).City + "_current"
 	// key := fmt.Sprintf("current%f,%f", location.Longitude, location.Latitude)
 	cache, err := w.RedisCache.GetCache(key)
 	if err != nil {
@@ -62,8 +63,8 @@ func (w WeatherAPI) GetCurrentWeather(location *Location) (res *string, failed e
 	return &sb, nil
 }
 
-func (w WeatherAPI) GetForecast(location *Location) (res *string, failed error) {
-	key := w.GetCity(location).City + "_forecast"
+func (w WeatherAPI) GetForecast(ctx context.Context, location *Location) (res *string, failed error) {
+	key := w.GetCity(ctx, location).City + "_forecast"
 	// key := fmt.Sprintf("forecast%f,%f", location.Longitude, location.Latitude)
 	cache, err := w.RedisCache.GetCache(key)
 	if err != nil {
