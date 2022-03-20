@@ -1,0 +1,14 @@
+{
+  "redisdb": {
+    "host": "localhost",
+    "port": 6379,
+    "password": ""
+  },
+  "weatherapiconfig": {
+    "apiKey": "eab6ccae3c604a21b2142652210407"
+  },
+  "appconfig": {
+    "port": 3000,
+    "name": "weather-api"
+  }
+}

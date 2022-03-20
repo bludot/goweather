@@ -1,4 +1,4 @@
-package main
+package main_test
 
 import (
 	"context"
@@ -8,19 +8,19 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	oLoadEnv := loadEnv
-	loadEnv = func(filename ...string) (err error) {
+	oLoadEnv := main.loadEnv
+	main.loadEnv = func(filename ...string) (err error) {
 		os.Setenv("PORT", "8899")
 		return
 	}
 	defer func() {
-		loadEnv = oLoadEnv
+		main.loadEnv = oLoadEnv
 		r := recover()
 		if r != nil {
 			t.Fail()
 		}
 	}()
-	srv := createServer()
+	srv := main.createServer()
 	time.Sleep(1 * time.Second)
 	srv.Shutdown(context.TODO())
 }

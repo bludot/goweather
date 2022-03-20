@@ -1,18 +1,17 @@
-package main
+package weatherapi_test
 
 import (
 	"bytes"
+	"github.com/bludot/goweather/mocks"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"testing"
-
-	"github.com/bludot/goweather/src/github.com/bludot/goweather/mocks"
 )
 
 func TestGetCurrentWeather(t *testing.T) {
-	loadEnv = func(filename ...string) (err error) {
+	main.loadEnv = func(filename ...string) (err error) {
 		os.Setenv("APIKEY", "notakey")
 		os.Setenv("REDIS_HOST", "redis")
 		return
@@ -41,7 +40,7 @@ func TestGetCurrentWeather(t *testing.T) {
 }
 
 func TestGetForecast(t *testing.T) {
-	loadEnv = func(filename ...string) (err error) {
+	main.loadEnv = func(filename ...string) (err error) {
 		os.Setenv("APIKEY", "notakey")
 		os.Setenv("REDIS_HOST", "redis")
 		return

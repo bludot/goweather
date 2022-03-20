@@ -1,4 +1,4 @@
-package main
+package metrics
 
 import (
 	"net/http"
@@ -25,7 +25,7 @@ var (
 	})
 )
 
-func setupMetrics() {
+func SetupMetrics() {
 	recordMetrics()
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":2112", nil)
