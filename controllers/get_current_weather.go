@@ -16,21 +16,22 @@ func (ctr Controller) GetCurrentWeather(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		tracing.AddSpanError(span, err)
-		tracing.FailSpan(span, err.Error())
+		span.AddSpanError(err)
+		span.FailSpan(err.Error())
 		return
 	}
 
-	tracing.AddSpanEvents(span, "location", map[string]string{
+	span.AddSpanEvents("location", map[string]string{
 		"event": "location",
 	})
 	forecast, err := ctr.WeatherApi.GetForecast(c, &location)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		tracing.AddSpanError(span, err)
-		tracing.FailSpan(span, err.Error())
+		span.AddSpanError(err)
+		span.FailSpan(err.Error())
 		return
 	}
+	span.Log(*forecast)
 	c.Header("Content-Type", "application/json")
 	c.String(http.StatusOK, *forecast)
 }
