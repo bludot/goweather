@@ -21,7 +21,7 @@ type Span struct {
 // argument, the span is either a plain one or a customised one. Each resulting
 // span must be completed with `defer span.End()` right after the call.
 func NewSpan(ctx context.Context, name string, cus SpanCustomiser) (context.Context, Span) {
-	ctx, span := otel.Tracer("").Start(ctx, name)
+	ctx, span := otel.Tracer("goweather").Start(ctx, name)
 	if cus == nil {
 		return ctx, Span{
 			name:    name,
