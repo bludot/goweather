@@ -17,15 +17,17 @@ func (ctr Controller) GetForecast(c *gin.Context) {
 	err := c.BindJSON(&location)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		span.End()
+		tracing.AddSpanError(span, err)
+		tracing.FailSpan(span, err.Error())
 		return
 	}
 	forecast, err := ctr.WeatherApi.GetForecast(c, &location)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		tracing.AddSpanError(span, err)
+		tracing.FailSpan(span, err.Error())
 		return
 	}
 	c.Header("Content-Type", "application/json")
-	c.JSON(http.StatusOK, *forecast)
+	c.String(http.StatusOK, *forecast)
 }
