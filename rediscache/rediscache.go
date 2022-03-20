@@ -1,15 +1,31 @@
-package main
+package rediscache
 
 import (
 	"context"
 	"fmt"
+	"github.com/bludot/goweather/config"
 	"log"
+	"strconv"
 	"time"
 
 	redis "github.com/go-redis/redis/v8"
 )
 
 var ctx = context.Background()
+
+type RedisCache struct {
+	Client *redis.Client
+}
+
+func NewRedisCache(config config.RedisDB) *RedisCache {
+	return &RedisCache{
+		Client: redis.NewClient(&redis.Options{
+			Addr:     config.Host + ":" + strconv.Itoa(config.Port),
+			Password: config.Password,
+			DB:       0,
+		}),
+	}
+}
 
 // for each latitde longitude set range
 
@@ -18,19 +34,9 @@ var ctx = context.Background()
 
 // format: long,lat,long,lat where first one is lower and second is higher
 
-func getClient() *redis.Client {
-	host := getEnv("REDIS_HOST")
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     host + ":6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-	return rdb
-}
-
-func setCache(key string, value string) (res bool, err error) {
+func (r RedisCache) SetCache(key string, value string) (res bool, err error) {
 	log.Println("got here")
-	rdb := getClient()
+	rdb := r.Client
 	set, err := rdb.SetNX(ctx, key, value, 60*60*time.Second).Result()
 	if err != nil {
 		panic(err)
@@ -39,8 +45,8 @@ func setCache(key string, value string) (res bool, err error) {
 	return set, nil
 }
 
-func getCache(key string) (cache string, err error) {
-	rdb := getClient()
+func (r RedisCache) GetCache(key string) (cache string, err error) {
+	rdb := r.Client
 	val, err := rdb.Get(ctx, key).Result()
 	if err != nil {
 		switch {

@@ -1,7 +1,10 @@
-package main
+package weatherapi
 
 import (
 	"fmt"
+	"github.com/bludot/goweather/config"
+	"github.com/bludot/goweather/http_client"
+	"github.com/bludot/goweather/rediscache"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,10 +16,24 @@ type Location struct {
 	IP        int     `json:"ip"`
 }
 
-func getCurrentWeather(location *Location) (res *string, failed error) {
-	key := getCity(location).City + "_current"
+type WeatherAPI struct {
+	APIKey     string
+	RedisCache *rediscache.RedisCache
+	HttpClient http_client.HTTPClient
+}
+
+func NewWeatherAPI(config config.WeatherAPIConfig, redisCache *rediscache.RedisCache) *WeatherAPI {
+	return &WeatherAPI{
+		APIKey:     config.APIKey,
+		RedisCache: redisCache,
+		HttpClient: http_client.NewClient(http.DefaultClient),
+	}
+}
+
+func (w WeatherAPI) GetCurrentWeather(location *Location) (res *string, failed error) {
+	key := w.GetCity(location).City + "_current"
 	// key := fmt.Sprintf("current%f,%f", location.Longitude, location.Latitude)
-	cache, err := getCache(key)
+	cache, err := w.RedisCache.GetCache(key)
 	if err != nil {
 		log.Println("got here")
 		// return ""
@@ -24,13 +41,13 @@ func getCurrentWeather(location *Location) (res *string, failed error) {
 	if err == nil {
 		return &cache, nil
 	}
-	apikey := getEnv("APIKEY")
+	apikey := w.APIKey
 	url := fmt.Sprintf("https://api.weatherapi.com/v1/current.json?key=%s&q=%f,%f", apikey, location.Latitude, location.Longitude)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := Client.Do(request)
+	resp, err := w.HttpClient.Do(request)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -40,15 +57,15 @@ func getCurrentWeather(location *Location) (res *string, failed error) {
 	}
 	//Convert the body to type string
 	sb := string(body)
-	setCache(key, sb)
+	w.RedisCache.SetCache(key, sb)
 	log.Printf(sb)
 	return &sb, nil
 }
 
-func getForecast(location *Location) (res *string, failed error) {
-	key := getCity(location).City + "_forecast"
+func (w WeatherAPI) GetForecast(location *Location) (res *string, failed error) {
+	key := w.GetCity(location).City + "_forecast"
 	// key := fmt.Sprintf("forecast%f,%f", location.Longitude, location.Latitude)
-	cache, err := getCache(key)
+	cache, err := w.RedisCache.GetCache(key)
 	if err != nil {
 		log.Println("got here")
 		// return ""
@@ -56,13 +73,13 @@ func getForecast(location *Location) (res *string, failed error) {
 	if err == nil {
 		return &cache, nil
 	}
-	apikey := getEnv("APIKEY")
+	apikey := w.APIKey
 	url := fmt.Sprintf("https://api.weatherapi.com/v1/forecast.json?key=%s&q=%f,%f&days=3&aqi=yes&alerts=yes", apikey, location.Latitude, location.Longitude)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := Client.Do(request)
+	resp, err := w.HttpClient.Do(request)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -72,7 +89,7 @@ func getForecast(location *Location) (res *string, failed error) {
 	}
 	//Convert the body to type string
 	sb := string(body)
-	setCache(key, sb)
+	w.RedisCache.SetCache(key, sb)
 	log.Printf(sb)
 	return &sb, nil
 }

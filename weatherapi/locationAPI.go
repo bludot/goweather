@@ -1,8 +1,9 @@
-package main
+package weatherapi
 
 import (
 	"encoding/json"
 	"fmt"
+
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,13 +16,13 @@ type City struct {
 	City string `json:"city"`
 }
 
-func getCity(location *Location) *City {
+func (w WeatherAPI) GetCity(location *Location) *City {
 	url := fmt.Sprintf("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=%flongitude=%f&localityLanguage=en", location.Latitude, location.Longitude)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil
 	}
-	resp, err := Client.Do(request)
+	resp, err := w.HttpClient.Do(request)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -5,11 +5,11 @@ services:
         context: .
         dockerfile: 'Dockerfile.local'
     tty: true
-    command: "gow run ./src/github.com/bludot/goweather"
+    command: "gow run ./"
+    environment:
+      CONFIG__REDIS_HOST: "redis"
     ports:
-      - 8080:8080
-      - 8086:8086
-      - 2112:2112
+      - 8080:3000
     volumes: 
       - './:/usr/src/app'
     networks:
