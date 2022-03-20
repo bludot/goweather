@@ -10,5 +10,8 @@
   "appconfig": {
     "port": 3000,
     "name": "weather-api"
+  },
+  "tracing": {
+    "url": "http://localhost:14268/api/traces"
   }
 }

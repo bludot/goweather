@@ -15,6 +15,7 @@ type Config struct {
 	RedisDB          RedisDB
 	AppConfig        AppConfig
 	WeatherAPIConfig WeatherAPIConfig
+	Tracing          TracingConfig
 }
 
 type AppConfig struct {
@@ -25,6 +26,10 @@ type AppConfig struct {
 
 type WeatherAPIConfig struct {
 	APIKey string `env:"CONFIG__WEATHER_API_CONFIG__API_KEY" required:"true"`
+}
+
+type TracingConfig struct {
+	URL string `env:"CONFIG__TRACING__URL" required:"false"`
 }
 
 type RedisDB struct {

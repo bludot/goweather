@@ -5,6 +5,7 @@ import (
 	"github.com/bludot/goweather/config"
 	"github.com/bludot/goweather/controllers"
 	"github.com/bludot/goweather/rediscache"
+	"github.com/bludot/goweather/tracing"
 	"github.com/bludot/goweather/weatherapi"
 	"github.com/gin-gonic/gin"
 	"github.com/penglongli/gin-metrics/ginmetrics"
@@ -36,12 +37,20 @@ func setupHealthCheck() http.Handler {
 }
 
 func main() {
+	ctx := context.Background()
 	log.Println("Starting Service")
 	c, err := config.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	log.Println("Config loaded", c.Tracing.URL)
+
+	prv, err := tracing.TracerProvider(c.Tracing.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer prv.Close(ctx)
 	m := ginmetrics.GetMonitor()
 	m.SetMetricPath("/metrics")
 	// +optional set slow time, default 5s
