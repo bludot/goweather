@@ -19,7 +19,7 @@ func (ctr Controller) GetCurrentWeather(c *gin.Context) {
 		tracing.AddSpanError(span, err)
 		return
 	}
-	forecast, err := ctr.WeatherApi.GetForecast(&location)
+	forecast, err := ctr.WeatherApi.GetForecast(c, &location)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		tracing.AddSpanError(span, err)
