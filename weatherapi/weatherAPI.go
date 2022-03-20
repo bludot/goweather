@@ -85,14 +85,14 @@ func (w WeatherAPI) GetForecast(ctx context.Context, location *Location) (res *s
 	if err != nil {
 		return nil, err
 	}
-	w.RedisCache.SetCache(spanCtx, key, sb)
+	w.RedisCache.SetCache(spanCtx, key, *sb)
 	// log.Printf(sb)
 	return sb, nil
 }
 
-func (w WeatherAPI) GetForecastAPICall(ctx context.Context, location *Location) (res *string, failed error) {
+func (w WeatherAPI) GetForecastAPICall(ctx context.Context, location *Location) (*string, error) {
 	method := "GetForecastAPICall"
-	spanCtx, span := tracing.NewSpan(ctx, method, nil)
+	_, span := tracing.NewSpan(ctx, method, nil)
 	defer span.End()
 
 	apikey := w.APIKey
