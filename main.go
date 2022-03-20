@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/bludot/goweather/config"
 	"github.com/bludot/goweather/controllers"
-	logger "github.com/bludot/goweather/logger"
 	"github.com/bludot/goweather/rediscache"
 	"github.com/bludot/goweather/tracing"
 	"github.com/bludot/goweather/weatherapi"
@@ -44,11 +43,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	logg := logger.NewZapLogger()
 
 	log.Println("Config loaded", c.Tracing.URL)
 
-	prv, err := tracing.TracerProvider(c.Tracing.URL, logg)
+	prv, err := tracing.TracerProvider(c.Tracing.URL)
 	if err != nil {
 		log.Fatal(err)
 	}
