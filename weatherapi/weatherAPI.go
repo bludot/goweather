@@ -59,7 +59,7 @@ func (w WeatherAPI) GetCurrentWeather(ctx context.Context, location *Location) (
 	//Convert the body to type string
 	sb := string(body)
 	w.RedisCache.SetCache(key, sb)
-	log.Printf(sb)
+	// log.Printf(sb)
 	return &sb, nil
 }
 
@@ -91,6 +91,6 @@ func (w WeatherAPI) GetForecast(ctx context.Context, location *Location) (res *s
 	//Convert the body to type string
 	sb := string(body)
 	w.RedisCache.SetCache(key, sb)
-	log.Printf(sb)
+	// log.Printf(sb)
 	return &sb, nil
 }
