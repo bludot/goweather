@@ -9,7 +9,7 @@ import (
 
 func (ctr Controller) GetCurrentWeather(c *gin.Context) {
 	method := "GetCurrentWeather"
-	_, span := tracing.NewSpan(c, method, nil)
+	ctx, span := tracing.NewSpan(c, method, nil)
 	defer span.End()
 	var location weatherapi.Location
 	err := c.BindJSON(&location)
@@ -24,14 +24,14 @@ func (ctr Controller) GetCurrentWeather(c *gin.Context) {
 	span.AddSpanEvents("location", map[string]string{
 		"event": "location",
 	})
-	forecast, err := ctr.WeatherApi.GetForecast(c, &location)
+	forecast, err := ctr.WeatherApi.GetForecast(ctx, &location)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		span.AddSpanError(err)
 		span.FailSpan(err.Error())
 		return
 	}
-	span.Log(*forecast)
+	span.Log("Got forecast")
 	c.Header("Content-Type", "application/json")
 	c.String(http.StatusOK, *forecast)
 }

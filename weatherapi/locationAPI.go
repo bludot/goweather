@@ -25,6 +25,7 @@ func (w WeatherAPI) GetCity(ctx context.Context, location *Location) *City {
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		span.AddSpanError(err)
+		span.Log(err.Error())
 		return nil
 	}
 	resp, err := w.HttpClient.Do(request)

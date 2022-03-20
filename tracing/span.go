@@ -3,6 +3,9 @@ package tracing
 import (
 	"context"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"os"
+	"strings"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -22,12 +25,23 @@ type Span struct {
 // span must be completed with `defer span.End()` right after the call.
 func NewSpan(ctx context.Context, name string, cus SpanCustomiser) (context.Context, Span) {
 	ctx, span := otel.Tracer("goweather").Start(ctx, name)
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02T15:04:05.000Z07:00")
+	encoderCfg.EncodeLevel = func(level zapcore.Level, encoder zapcore.PrimitiveArrayEncoder) {
+		encoder.AppendString(strings.ToUpper(level.String()))
+	}
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderCfg),
+		zapcore.AddSync(os.Stdout),
+		zap.NewAtomicLevelAt(zap.InfoLevel),
+	)
+	logger := zap.New(core)
 	if cus == nil {
 		return ctx, Span{
 			name:    name,
 			span:    span,
 			context: ctx,
-			logger:  zap.NewNop(),
+			logger:  logger,
 		}
 	}
 
@@ -35,7 +49,7 @@ func NewSpan(ctx context.Context, name string, cus SpanCustomiser) (context.Cont
 		name:    name,
 		span:    span,
 		context: ctx,
-		logger:  zap.NewNop(),
+		logger:  logger,
 	}
 
 }
