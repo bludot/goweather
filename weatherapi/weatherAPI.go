@@ -6,6 +6,7 @@ import (
 	"github.com/bludot/goweather/config"
 	"github.com/bludot/goweather/http_client"
 	"github.com/bludot/goweather/rediscache"
+	"github.com/bludot/goweather/tracing"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -32,9 +33,12 @@ func NewWeatherAPI(config config.WeatherAPIConfig, redisCache *rediscache.RedisC
 }
 
 func (w WeatherAPI) GetCurrentWeather(ctx context.Context, location *Location) (res *string, failed error) {
+	method := "GetCurrentWeather"
+	spanCtx, span := tracing.NewSpan(ctx, method, nil)
+	defer span.End()
 	key := w.GetCity(ctx, location).City + "_current"
 	// key := fmt.Sprintf("current%f,%f", location.Longitude, location.Latitude)
-	cache, err := w.RedisCache.GetCache(key)
+	cache, err := w.RedisCache.GetCache(spanCtx, key)
 	if err != nil {
 		log.Println("got here")
 		// return ""
@@ -58,15 +62,18 @@ func (w WeatherAPI) GetCurrentWeather(ctx context.Context, location *Location) (
 	}
 	//Convert the body to type string
 	sb := string(body)
-	w.RedisCache.SetCache(key, sb)
+	w.RedisCache.SetCache(spanCtx, key, sb)
 	// log.Printf(sb)
 	return &sb, nil
 }
 
 func (w WeatherAPI) GetForecast(ctx context.Context, location *Location) (res *string, failed error) {
-	key := w.GetCity(ctx, location).City + "_forecast"
+	method := "GetForecast"
+	spanCtx, span := tracing.NewSpan(ctx, method, nil)
+	defer span.End()
+	key := w.GetCity(spanCtx, location).City + "_forecast"
 	// key := fmt.Sprintf("forecast%f,%f", location.Longitude, location.Latitude)
-	cache, err := w.RedisCache.GetCache(key)
+	cache, err := w.RedisCache.GetCache(spanCtx, key)
 	if err != nil {
 		log.Println("got here")
 		// return ""
@@ -74,6 +81,20 @@ func (w WeatherAPI) GetForecast(ctx context.Context, location *Location) (res *s
 	if err == nil {
 		return &cache, nil
 	}
+	sb, err := w.GetForecastAPICall(spanCtx, location)
+	if err != nil {
+		return nil, err
+	}
+	w.RedisCache.SetCache(spanCtx, key, *sb)
+	// log.Printf(sb)
+	return sb, nil
+}
+
+func (w WeatherAPI) GetForecastAPICall(ctx context.Context, location *Location) (*string, error) {
+	method := "GetForecastAPICall"
+	_, span := tracing.NewSpan(ctx, method, nil)
+	defer span.End()
+
 	apikey := w.APIKey
 	url := fmt.Sprintf("https://api.weatherapi.com/v1/forecast.json?key=%s&q=%f,%f&days=3&aqi=yes&alerts=yes", apikey, location.Latitude, location.Longitude)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -90,7 +111,6 @@ func (w WeatherAPI) GetForecast(ctx context.Context, location *Location) (res *s
 	}
 	//Convert the body to type string
 	sb := string(body)
-	w.RedisCache.SetCache(key, sb)
-	// log.Printf(sb)
+
 	return &sb, nil
 }

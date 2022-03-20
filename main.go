@@ -9,6 +9,7 @@ import (
 	"github.com/bludot/goweather/weatherapi"
 	"github.com/gin-gonic/gin"
 	"github.com/penglongli/gin-metrics/ginmetrics"
+	"go.uber.org/zap"
 	"log"
 	"net/http"
 	"os"
@@ -37,6 +38,8 @@ func setupHealthCheck() http.Handler {
 }
 
 func main() {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
 	ctx := context.Background()
 	log.Println("Starting Service")
 	c, err := config.LoadConfig()
