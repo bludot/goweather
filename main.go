@@ -74,6 +74,11 @@ func main() {
 	cache := rediscache.NewRedisCache(c.RedisDB)
 	weatherApi := weatherapi.NewWeatherAPI(c.WeatherAPIConfig, cache)
 	ctr := controllers.NewController(cache, weatherApi)
+	if c.AppConfig.Mode == "release" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
 	r := gin.Default()
 	// set middleware for gin
 	m.Use(r)

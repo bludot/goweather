@@ -22,6 +22,7 @@ type AppConfig struct {
 	Name    string `env:"CONFIG__APP_CONFIG__NAME" required:"true" default:"goweather"`
 	Version string `env:"APP_VERSION" default:"local"`
 	Port    int    `env:"CONFIG__APP_CONFIG__PORT" default:"8080"`
+	Mode    string `env:"CONFIG__APP_CONFIG__MODE" default:"debug"`
 }
 
 type WeatherAPIConfig struct {
