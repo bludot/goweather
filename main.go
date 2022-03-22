@@ -49,7 +49,7 @@ func main() {
 
 	log.Println("Config loaded", c.Tracing.URL)
 
-	prv, err := tracing.TracerProvider(c.Tracing.URL)
+	prv, err := tracing.TracerProvider(c)
 	if err != nil {
 		log.Fatal(err)
 	}

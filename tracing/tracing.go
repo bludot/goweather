@@ -2,6 +2,7 @@ package tracing
 
 import (
 	"context"
+	"github.com/bludot/goweather/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/jaeger"
@@ -17,14 +18,19 @@ type Provider struct {
 	provider trace.TracerProvider
 }
 
-func TracerProvider(url string) (*Provider, error) {
+func TracerProvider(config *config.Config) (*Provider, error) {
 	// Create the Jaeger exporter
-	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
+	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(config.Tracing.URL)))
 	if err != nil {
 		log.Println("Failed to create the Jaeger exporter: ", err)
 		return nil, err
 	}
 	tp := tracesdk.NewTracerProvider(
+		tracesdk.WithResource(resource.NewWithAttributes(
+			semconv.ServiceNameKey.String(config.AppConfig.Name),
+			semconv.ServiceVersionKey.String(config.AppConfig.Version),
+			semconv.DeploymentEnvironmentKey.String("dev"),
+		)),
 		// Always be sure to batch in production.
 		tracesdk.WithBatcher(exp),
 		// Record information about this application in a Resource.
