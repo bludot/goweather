@@ -21,13 +21,6 @@ import (
 	healthcheck "github.com/heptiolabs/healthcheck"
 )
 
-func addCorsHeader(c *gin.Context) {
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
-	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-}
-
 func setupHealthCheck() http.Handler {
 	health := healthcheck.NewHandler()
 	health.AddLivenessCheck("goroutine-threshold", healthcheck.GoroutineCountCheck(100))
@@ -35,6 +28,22 @@ func setupHealthCheck() http.Handler {
 	// Our app is not ready if we can't connect to our database (`var db *sql.DB`) in <1s.
 	// health.AddReadinessCheck("database", healthcheck.DatabasePingCheck(db, 1*time.Second))
 	return health
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
 
 func main() {
@@ -68,8 +77,8 @@ func main() {
 	r := gin.Default()
 	// set middleware for gin
 	m.Use(r)
-	r.POST("/current", addCorsHeader, ctr.GetCurrentWeather)
-	r.POST("/forecast", addCorsHeader, ctr.GetForecast)
+	r.POST("/current", CORSMiddleware(), ctr.GetCurrentWeather)
+	r.POST("/forecast", CORSMiddleware(), ctr.GetForecast)
 	r.Any("/live", gin.WrapH(setupHealthCheck()))
 	r.Any("/ready", gin.WrapH(setupHealthCheck()))
 	log.Println(strconv.Itoa(c.AppConfig.Port))
