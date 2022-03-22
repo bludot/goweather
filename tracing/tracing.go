@@ -26,6 +26,7 @@ func TracerProvider(config *config.Config) (*Provider, error) {
 	}
 
 	tp := tracesdk.NewTracerProvider(
+		tracesdk.WithBatcher(exp),
 		tracesdk.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String(config.AppConfig.Name),
