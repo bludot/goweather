@@ -82,8 +82,10 @@ func main() {
 	r := gin.Default()
 	// set middleware for gin
 	m.Use(r)
+	r.OPTIONS("/current", CORSMiddleware())
 	r.POST("/current", CORSMiddleware(), ctr.GetCurrentWeather)
 	r.POST("/forecast", CORSMiddleware(), ctr.GetForecast)
+	r.OPTIONS("/forecast", CORSMiddleware())
 	r.Any("/live", gin.WrapH(setupHealthCheck()))
 	r.Any("/ready", gin.WrapH(setupHealthCheck()))
 	log.Println(strconv.Itoa(c.AppConfig.Port))
