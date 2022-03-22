@@ -21,7 +21,8 @@ func (w WeatherAPI) GetCity(ctx context.Context, location *Location) *City {
 	method := "GetCity"
 	_, span := tracing.NewSpan(ctx, method, nil)
 	defer span.End()
-	url := fmt.Sprintf("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=%flongitude=%f&localityLanguage=en", location.Latitude, location.Longitude)
+	span.Log(fmt.Sprint("longitude: ", location.Longitude, " latitude: ", location.Latitude))
+	url := fmt.Sprintf("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=%f&longitude=%f&localityLanguage=en", location.Latitude, location.Longitude)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		span.AddSpanError(err)
@@ -42,5 +43,6 @@ func (w WeatherAPI) GetCity(ctx context.Context, location *Location) *City {
 	}
 	var city City
 	json.Unmarshal([]byte(body), &city)
+	span.Log("city: " + city.City)
 	return &city
 }

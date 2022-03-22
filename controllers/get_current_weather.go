@@ -24,7 +24,7 @@ func (ctr Controller) GetCurrentWeather(c *gin.Context) {
 	span.AddSpanEvents("location", map[string]string{
 		"event": "location",
 	})
-	forecast, err := ctr.WeatherApi.GetForecast(ctx, &location)
+	forecast, err := ctr.WeatherApi.GetCurrentWeather(ctx, &location)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		span.AddSpanError(err)
