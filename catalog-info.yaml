@@ -8,3 +8,16 @@ spec:
   type: other
   lifecycle: unknown
   owner: bludot
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: goweather
+  annotations:
+    github.com/project-slug: bludot/goweather
+spec:
+  type: openapi
+  lifecycle: production
+  owner: bludot
+  system: Airconditioning-System
+  definition: 
