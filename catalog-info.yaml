@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: goweather
+  annotations:
+    github.com/project-slug: bludot/goweather
+spec:
+  type: other
+  lifecycle: unknown
+  owner: bludot
