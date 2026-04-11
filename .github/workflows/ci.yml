@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:6.2.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 1s
+          --health-timeout 3s
+          --health-retries 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run tests
+        env:
+          CONFIG__REDIS_HOST: localhost
+          CONFIG__WEATHER_API_CONFIG__API_KEY: ${{ secrets.WEATHER_API_KEY }}
+        run: go test -coverprofile=coverage.out ./...
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t goweather:${{ github.sha }} .
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Harbor registry
+        uses: docker/login-action@v3
+        with:
+          registry: harbor.floret.dev
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Generate version tag
+        id: version
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+          MAJOR=$(echo "$LAST_TAG" | sed -E 's/^([0-9]+)\..*/\1/')
+          MINOR_OLD=$(echo "$LAST_TAG" | sed -E 's/^[0-9]+\.([0-9]+)\..*/\1/')
+          MINOR_NEW=$((MINOR_OLD + 1))
+          RC=$(git rev-list --count "${LAST_TAG}..HEAD" 2>/dev/null || echo "1")
+          VERSION="${MAJOR}.${MINOR_NEW}.0-rc.${RC}"
+          echo "tag=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE=harbor.floret.dev/weather/goweather
+          TAG=${{ steps.version.outputs.tag }}
+          docker build -t "$IMAGE:$TAG" .
+          docker push "$IMAGE:$TAG"
