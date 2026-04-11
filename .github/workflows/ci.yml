@@ -1,12 +1,13 @@
-name: CI
+name: Docker Image CI
 
 on:
   push:
-    branches: [master]
+    branches: [ "master" ]
   pull_request:
-    branches: [master]
+    branches: [ "master" ]
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
 
@@ -22,7 +23,7 @@ jobs:
           --health-retries 30
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - uses: actions/setup-go@v5
         with:
@@ -37,42 +38,64 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Build Docker image
-        run: docker build -t goweather:${{ github.sha }} .
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Log in to Harbor registry
-        uses: docker/login-action@v3
+      - name: Set repo name environment variable
+        run: |
+          echo "REPO_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      - name: Build the Docker image
+        run: |
+          docker build -t ${{ env.REPO_NAME }} .
+          docker tag ${{ env.REPO_NAME }} ${{ secrets.REGISTRY }}/weather/${{ env.REPO_NAME }}:${{ github.sha }}
+      - name: Login to Harbor Container Registry
+        uses: docker/login-action@v1
         with:
-          registry: harbor.floret.dev
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
-      - name: Generate version tag
-        id: version
+          registry: ${{ secrets.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - name: Push to Harbor Container Registry
         run: |
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
-          MAJOR=$(echo "$LAST_TAG" | sed -E 's/^([0-9]+)\..*/\1/')
-          MINOR_OLD=$(echo "$LAST_TAG" | sed -E 's/^[0-9]+\.([0-9]+)\..*/\1/')
-          MINOR_NEW=$((MINOR_OLD + 1))
-          RC=$(git rev-list --count "${LAST_TAG}..HEAD" 2>/dev/null || echo "1")
-          VERSION="${MAJOR}.${MINOR_NEW}.0-rc.${RC}"
-          echo "tag=${VERSION}" >> "$GITHUB_OUTPUT"
+          docker push ${{ secrets.REGISTRY }}/weather/${{ env.REPO_NAME }}:${{ github.sha }}
+          docker save ${{ env.REPO_NAME }} >> ${{ env.REPO_NAME }}.tar
+      - name: release
+        uses: cycjimmy/semantic-release-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          DOCKER_REPO_TEST: ${{ secrets.REGISTRY }}/weather/${{ env.REPO_NAME }}
+          DOCKER_REPO_PROD: ${{ secrets.REGISTRY }}/weather/${{ env.REPO_NAME }}
+        with:
+          semantic_version: 18
+          extra_plugins: |
+            @semantic-release/git@10.0.1
+            @semantic-release/exec@6.0.2
+            @semantic-release/changelog@6.0.1
 
-      - name: Build and push Docker image
+      - uses: actions/checkout@v3
+      - name: Set release version
         run: |
-          IMAGE=harbor.floret.dev/weather/goweather
-          TAG=${{ steps.version.outputs.tag }}
-          docker build -t "$IMAGE:$TAG" .
-          docker push "$IMAGE:$TAG"
+          git fetch --tags
+          export GITHUB_REF_NAME=$(git describe --tags --abbrev=0)
+          echo "RELEASE_VERSION=$GITHUB_REF_NAME" >> $GITHUB_ENV
+      - name: checkout argocd repo
+        uses: actions/checkout@v3
+        with:
+          repository: 'bludot/floret_argocd'
+          token: ${{ secrets.ACCESS_TOKEN }}
+          path: 'argocd'
+      - name: deploy to argocd
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          REPO_NAME: ${{ env.REPO_NAME }}
+        run: |
+          RELEASE_VERSION=$(echo $RELEASE_VERSION | sed 's/v//')
+          cd argocd && find . -type f -name '*.yaml' -print0 | xargs -0 sed -E -i 's/(tag:[[:space:]]).*( # '"$REPO_NAME"')/\1'"$RELEASE_VERSION"'\2/'
+          git config --global user.email "noreply@weeb.vip"
+          git config --global user.name "weeb-vip"
+          git add .
+          git status
+          git commit -m "feat: $REPO_NAME $RELEASE_VERSION"
+          git push origin main
