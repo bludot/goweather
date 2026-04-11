@@ -50,7 +50,7 @@ func (w WeatherAPI) GetCurrentWeatherByQuery(ctx context.Context, location *Loca
 	// replace spaces with %20
 	query = strings.ReplaceAll(query, " ", "%20")
 	span.Log(fmt.Sprint("query: ", query))
-	key := fmt.Sprintf("current%d", query)
+	key := fmt.Sprintf("current_%s", query)
 	cache, err := w.RedisCache.GetCache(spanCtx, key)
 	if err != nil {
 		log.Println("got here")
