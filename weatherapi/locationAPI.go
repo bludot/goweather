@@ -17,6 +17,13 @@ type City struct {
 	City string `json:"city"`
 }
 
+// GetCity reverse-geocodes a coordinate pair to a city name.
+//
+// It returns nil when the lookup cannot be completed, and a City whose City
+// field is "" when the coordinates have no associated city (oceans, remote
+// areas).  Callers MUST handle both — dereferencing the result directly, or
+// using an empty City as a cache key, serves one location's data for another.
+// See coordCacheKey in cachekey.go.
 func (w WeatherAPI) GetCity(ctx context.Context, location *Location) *City {
 	method := "GetCity"
 	_, span := tracing.NewSpan(ctx, method, nil)
@@ -42,7 +49,13 @@ func (w WeatherAPI) GetCity(ctx context.Context, location *Location) *City {
 		return nil
 	}
 	var city City
-	json.Unmarshal([]byte(body), &city)
+	if err := json.Unmarshal(body, &city); err != nil {
+		// An unmarshal failure (an error page, a rate-limit body) previously
+		// fell through and yielded a City with an empty name.
+		span.AddSpanError(err)
+		span.Log(err.Error())
+		return nil
+	}
 	span.Log("city: " + city.City)
 	return &city
 }

@@ -10,7 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
+	"net/url"
 )
 
 type Location struct {
@@ -47,10 +47,10 @@ func (w WeatherAPI) GetCurrentWeatherByQuery(ctx context.Context, location *Loca
 	} else {
 		query = location.City
 	}
-	// replace spaces with %20
-	query = strings.ReplaceAll(query, " ", "%20")
 	span.Log(fmt.Sprint("query: ", query))
-	key := fmt.Sprintf("current_%s", query)
+	// The cache key uses the raw query; only the URL form is escaped.
+	escapedQuery := url.QueryEscape(query)
+	key := queryCacheKey("current", query)
 	cache, err := w.RedisCache.GetCache(spanCtx, key)
 	if err != nil {
 		log.Println("got here")
@@ -61,7 +61,7 @@ func (w WeatherAPI) GetCurrentWeatherByQuery(ctx context.Context, location *Loca
 	}
 	apikey := w.APIKey
 
-	url := fmt.Sprintf("https://api.weatherapi.com/v1/current.json?key=%s&q=%s", apikey, query)
+	url := fmt.Sprintf("https://api.weatherapi.com/v1/current.json?key=%s&q=%s", apikey, escapedQuery)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -69,12 +69,12 @@ func (w WeatherAPI) GetCurrentWeatherByQuery(ctx context.Context, location *Loca
 
 	resp, err := w.HttpClient.Do(request)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
 	//Convert the body to type string
@@ -89,8 +89,7 @@ func (w WeatherAPI) GetCurrentWeather(ctx context.Context, location *Location) (
 	method := "GetCurrentWeather"
 	spanCtx, span := tracing.NewSpan(ctx, method, nil)
 	defer span.End()
-	key := w.GetCity(ctx, location).City + "_current"
-	// key := fmt.Sprintf("current%f,%f", location.Longitude, location.Latitude)
+	key := coordCacheKey("current", location.Latitude, location.Longitude)
 	cache, err := w.RedisCache.GetCache(spanCtx, key)
 	if err != nil {
 		log.Println("got here")
@@ -107,11 +106,11 @@ func (w WeatherAPI) GetCurrentWeather(ctx context.Context, location *Location) (
 	}
 	resp, err := w.HttpClient.Do(request)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 	//Convert the body to type string
 	sb := string(body)
@@ -124,8 +123,7 @@ func (w WeatherAPI) GetForecast(ctx context.Context, location *Location) (res *s
 	method := "GetForecast"
 	spanCtx, span := tracing.NewSpan(ctx, method, nil)
 	defer span.End()
-	key := w.GetCity(spanCtx, location).City + "_forecast"
-	// key := fmt.Sprintf("forecast%f,%f", location.Longitude, location.Latitude)
+	key := forecastCoordCacheKey(location.Latitude, location.Longitude, location.Days)
 	cache, err := w.RedisCache.GetCache(spanCtx, key)
 	if err != nil {
 		log.Println("got here")
@@ -153,9 +151,10 @@ func (w WeatherAPI) GetForecastByQuery(ctx context.Context, location *Location) 
 	} else {
 		query = location.City
 	}
-	query = strings.ReplaceAll(query, " ", "%20")
 	span.Log(fmt.Sprint("query: ", query))
-	key := fmt.Sprintf("forecast_%s", query)
+	// The cache key uses the raw query; only the URL form is escaped.
+	escapedQuery := url.QueryEscape(query)
+	key := forecastQueryCacheKey(query, location.Days)
 	cache, err := w.RedisCache.GetCache(spanCtx, key)
 	if err != nil {
 		log.Println("got here")
@@ -164,13 +163,10 @@ func (w WeatherAPI) GetForecastByQuery(ctx context.Context, location *Location) 
 		return &cache, nil
 	}
 
-	days := location.Days
-	if days <= 0 {
-		days = 3
-	}
+	days := normalizeDays(location.Days)
 
 	apikey := w.APIKey
-	url := fmt.Sprintf("https://api.weatherapi.com/v1/forecast.json?key=%s&q=%s&days=%d&aqi=yes&alerts=yes", apikey, query, days)
+	url := fmt.Sprintf("https://api.weatherapi.com/v1/forecast.json?key=%s&q=%s&days=%d&aqi=yes&alerts=yes", apikey, escapedQuery, days)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -193,10 +189,7 @@ func (w WeatherAPI) GetForecastAPICall(ctx context.Context, location *Location) 
 	_, span := tracing.NewSpan(ctx, method, nil)
 	defer span.End()
 
-	days := location.Days
-	if days <= 0 {
-		days = 3
-	}
+	days := normalizeDays(location.Days)
 
 	apikey := w.APIKey
 	url := fmt.Sprintf("https://api.weatherapi.com/v1/forecast.json?key=%s&q=%f,%f&days=%d&aqi=yes&alerts=yes", apikey, location.Latitude, location.Longitude, days)
